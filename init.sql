@@ -51,7 +51,7 @@ create table buy (
 	person_id integer not null,
 
 	foreign key (person_id) references person(id)
-)
+);
 
 create table buy_details (
 	order_id primary key,
@@ -59,7 +59,19 @@ create table buy_details (
 	quantity integer not null,
 
 	foreign key (product_name) references product(name)
-)
+);
+
+create sequence person_seq
+	start with 1
+	increment by 1;
+
+create sequence pet_seq
+	start with 1
+	increment by 1;
+
+create sequence appointment_seq
+	start with 1
+	increment by 1;
 
 create or replace function compute_cost(id_prod product.id%type) returns integer as $$
 	declare 
@@ -81,11 +93,21 @@ create or replace view display_appointments as
 
 alter table appointments rename to appointment;
 
-insert into person values (1, 'kaan', 'yazici', '5533647175');
-insert into pet values (1, 'zeytin', 'dog', 'terrier', 6, 'M');
+insert into person values (nextval('person_seq'), 'kaan', 'yazici', '5533647175');
+insert into pet values (nextval('pet_seq'), 'zeytin', 'dog', 'terrier', 6, 'M');
 insert into pets values (1, 1);
-insert into appointment values (1, 1, 1, '28/12/2024');
-		
-		
+insert into appointment values (nextval('appointment_seq'), 1, 1, '28/12/2024');	
+
+create or replace view display_people_with_appointments as
+	select person.fname, person.lname, count(*)
+	from person, appointment
+	where person.id = appointment.owner_id
+	group by person.id
+	having count(*) > 0;
+
+select * from display_people_with_appointments;
+select * from person;
+insert into person values (nextval('person_seq'), 'mert', 'yazici', '5521231234');
+
 	
 
