@@ -7,14 +7,14 @@ create table pet (
 	sex char(1)
 );
 
+-- dropped phone number
 create table person (
 	id integer primary key,
 	fname varchar(20) not null,
-	lname varchar(20) not null,
-	phone_number char(10)
+	lname varchar(20) not null
 );
 
--- TODO primary key sadece pet_id olacak
+-- primary key only pet_id
 create table pets (
 	owner_id integer,
 	pet_id integer,
