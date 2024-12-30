@@ -11,7 +11,7 @@ create or replace function compute_cost(id_prod product.id%type) returns integer
 	end; $$
 	language plpgsql;
 
---buy_details'e ekleme yaparken urun adinin mevcut olup olmadigini kontrol eden trigger icin fonksiyon
+-- buy_details'e ekleme yaparken urun adinin mevcut olup olmadigini kontrol eden trigger icin fonksiyon
 create or replace function check_name_buy_details() returns trigger as $$
 	begin
 		if not exists (select 1 from product where product.name = NEW.product_name) then
@@ -31,3 +31,9 @@ returns table(product_name varchar(20), quantity integer) as $$
 		where buy_details.order_id = buy.order_id and buy.person_id = p_id;
 	end; $$
 language plpgsql;
+
+-- TODO function to compute grand total order cost for a person
+
+-- TODO id ve sifre icin trigger icin fonksiyon
+
+-- TODO satin alim yaparken stok kontrolu yapan trigger icin fonksiyon

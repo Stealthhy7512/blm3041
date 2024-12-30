@@ -15,3 +15,7 @@ create or replace view display_pets_without_appointments as
 		from pet, appointment
 		where pet.id = appointment.pet_id
 		order by pet.name); 
+
+-- belki appointmenti olan hayvanlar
+
+

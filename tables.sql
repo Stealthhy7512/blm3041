@@ -1,3 +1,4 @@
+-- add owner_id as fkey
 create table pet (
 	id integer primary key,
 	name varchar(20) not null,
@@ -8,13 +9,22 @@ create table pet (
 );
 
 -- dropped phone number
+-- her person icin sifre eklencek
 create table person (
 	id integer primary key,
 	fname varchar(20) not null,
-	lname varchar(20) not null
+	lname varchar(20) not null,
+	password varchar(20) not null,
+	address varchar(100)
 );
 
+alter table person add password varchar(20);
+alter table person add address varchar(100);
+
+select * from person;
+
 -- primary key only pet_id
+-- drop pets relation
 create table pets (
 	owner_id integer,
 	pet_id integer,
@@ -24,6 +34,7 @@ create table pets (
 	foreign key (pet_id) references pet(id)
 );
 
+-- owner_id might be redundant
 create table appointment (
 	appointment_id integer primary key,
 	owner_id integer not null,
@@ -54,10 +65,12 @@ create table buy (
 	foreign key (person_id) references person(id)
 );
 
+-- pkey (order_id, product_name)
 create table buy_details (
-	order_id integer primary key,
+	order_id integer,
 	product_name varchar(20) not null,
 	quantity integer not null,
 
 	foreign key (order_id) references buy(order_id)
 );
+alter table buy_details add primary key (order_id, product_name); 
