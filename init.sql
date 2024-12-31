@@ -10,8 +10,7 @@ create table pet (
 create table person (
 	id integer primary key,
 	fname varchar(20) not null,
-	lname varchar(20) not null,
-	phone_number char(10)
+	lname varchar(20) not null
 );
 
 -- TODO primary key sadece pet_id olacak
@@ -173,3 +172,5 @@ returns table(product_name varchar(20), quantity integer) as $$
 language plpgsql;
 
 -- select * from buy_details_of_person(1);
+
+alter table person drop phone_number;

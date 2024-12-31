@@ -6,6 +6,11 @@ before insert on buy_details
 for each row
 execute function check_name_buy_details();
 
--- TODO id ve sifre icin kontrol trigger
+-- TODO id ve sifre icin kontrol trigger (gerek yok sanki buna)
 
 -- TODO satin alim yaparken stok kontrolu yapan trigger
+-- Kontrol et GPT yapti
+create trigger check_and_update_order_quantity_trigger
+before insert or update on buy
+for each row
+execute function check_and_update_order_quantity();
