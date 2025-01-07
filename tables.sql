@@ -45,10 +45,11 @@ create table appointment (
 	foreign key (owner_id) references person(id),
 	foreign key (pet_id) references pet(id)	
 );
+drop table appointment;
 
 create table product (
 	id integer primary key,
-	name varchar(20) not null,
+	name varchar(50) not null,
 	cost integer not null
 );
 
@@ -69,7 +70,7 @@ create table buy (
 -- pkey (order_id, product_name)
 create table buy_details (
 	order_id integer,
-	product_name varchar(20) not null,
+	product_name varchar(50) not null,
 	quantity integer not null,
 
 	foreign key (order_id) references buy(order_id)
