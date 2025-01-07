@@ -15,6 +15,7 @@ insert into person values
 (nextval('person_seq'), 'Mia', 'Allen', 'miaSecret', '1111 Birch Ln'),
 (nextval('person_seq'), 'Liam', 'Wright', 'liam000', '1212 Maple Rd');
 
+-- TODO fix pet data
 INSERT INTO pet VALUES 
 (nextval('pet_seq'), 1, 'Buddy', 'Dog', 'Labrador Retriever', 5, 'M'),
 (nextval('pet_seq'), 2, 'Mittens', 'Cat', 'Siamese', 3, 'F'),
@@ -97,18 +98,40 @@ INSERT INTO storage VALUES
 (30, 7);
 
 INSERT INTO buy VALUES 
-(nextval('order_seq'), 3),
-(nextval('order_seq'), 1),
-(nextval('order_seq'), 5),
-(nextval('order_seq'), 2),
-(nextval('order_seq'), 7),
-(nextval('order_seq'), 4),
-(nextval('order_seq'), 9),
-(nextval('order_seq'), 6),
-(nextval('order_seq'), 8),
-(nextval('order_seq'), 10),
-(nextval('order_seq'), 15),
-(nextval('order_seq'), 13),
-(nextval('order_seq'), 11),
-(nextval('order_seq'), 12),
-(nextval('order_seq'), 14);
+(nextval('buy_seq'), 3),
+(nextval('buy_seq'), 1),
+(nextval('buy_seq'), 5),
+(nextval('buy_seq'), 2),
+(nextval('buy_seq'), 7),
+(nextval('buy_seq'), 4),
+(nextval('buy_seq'), 9),
+(nextval('buy_seq'), 6),
+(nextval('buy_seq'), 8),
+(nextval('buy_seq'), 10),
+(nextval('buy_seq'), 15),
+(nextval('buy_seq'), 13),
+(nextval('buy_seq'), 11),
+(nextval('buy_seq'), 12),
+(nextval('buy_seq'), 14);
+
+INSERT INTO buy_details VALUES 
+(1, 'Dog Food - Chicken Flavor', 2),
+(1, 'Cat Food - Salmon Flavor', 1),
+(2, 'Rabbit Pellets', 3),
+(3, 'Bird Seed Mix', 1),
+(3, 'Hamster Food', 2),
+(4, 'Puppy Food - Small Breed', 4),
+(5, 'Kitten Food - Tuna', 2),
+(6, 'Large Breed Dog Food', 1),
+(7, 'Senior Cat Food', 2),
+(7, 'Parrot Food - Tropical Mix', 1),
+(8, 'Chew Toy - Bone Shape', 5),
+(9, 'Scratching Post for Cats', 1),
+(10, 'Rabbit Chew Sticks', 6),
+(11, 'Bird Swing Toy', 2),
+(12, 'Hamster Exercise Wheel', 1),
+(13, 'Rubber Ball for Dogs', 3),
+(13, 'Catnip Toy', 2),
+(14, 'Rope Tug Toy for Dogs', 1),
+(15, 'Interactive Laser Toy', 2),
+(15, 'Wooden Ladder for Birds', 1);

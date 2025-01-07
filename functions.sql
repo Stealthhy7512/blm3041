@@ -17,22 +17,56 @@ create or replace function check_name_buy_details() returns trigger as $$
 		if not exists (select 1 from product where product.name = NEW.product_name) then
 			raise exception 'Product name does not exist.';
 		end if;
+		raise notice 'Product is legal to buy.'
 		return NEW;
 	end; $$
 	language plpgsql;
 
+-- TODO bunu record cursor ile yaz
 -- bir person'in butun siparislerini detaylariyla listeleyen fonksiyon
-create or replace function buy_details_of_person(p_id person.id%type) 
-returns table(product_name varchar(20), quantity integer) as $$
+create type type_table as (p_name varchar(20), quantity integer);
+create or replace function buy_details_of_person(p_id person.id%type)
+returns type_table as $$
+	declare
+		retval type_table;
 	begin
-		return query
-		select buy_details.product_name, buy_details.quantity
+		select buy_details.product_name, buy_details.quantity into retval
 		from buy_details, buy
-		where buy_details.order_id = buy.order_id and buy.person_id = p_id;
+		where buy.person_id = p_id and buy_details.order_id = buy.order_id;
+		return retval;
 	end; $$
 language plpgsql;
 
+drop function buy_details_of_person;
+
+select * from buy_details_of_person(1);
+select * from buy_details;
+
+-- create or replace function buy_details_of_person(p_id person.id%type) 
+-- returns table(product_name varchar(20), quantity integer) as $$
+-- 	begin
+-- 		return query
+-- 		select buy_details.product_name, buy_details.quantity
+-- 		from buy_details, buy
+-- 		where buy_details.order_id = buy.order_id and buy.person_id = p_id;
+-- 	end; $$
+-- language plpgsql;
+
 -- TODO function to compute grand total order cost for a person
+create or replace function compute_total_cost(p_id person.id%type) returns numeric as $$
+declare
+    total_cost numeric := 0;
+begin
+    select sum((SELECT product.cost FROM product WHERE product.name = buy_details.product_name) * buy_details.quantity) into total_cost
+    from buy_details
+    where buy_details.order_id in (
+        select buy.order_id
+        from buy
+        where buy.person_id = p_id
+    );
+    return total_cost;
+end; $$
+language plpgsql;
 
 		
 
@@ -71,7 +105,7 @@ begin
             where product_id = record.product_name;
         end if;
     end loop;
-
+	raise notice 'Products bought.'
     return NEW;
 end;
 $$ language plpgsql;
