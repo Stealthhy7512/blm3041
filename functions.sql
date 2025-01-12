@@ -115,7 +115,6 @@ create or replace function check_name_buy_details() returns trigger as $$
 	end; $$
 	language plpgsql;
 
--- TODO bunu record cursor ile yaz
 -- bir person'in butun siparislerini detaylariyla listeleyen fonksiyon
 create type type_table as (p_name varchar(20), quantity integer);
 create or replace function buy_details_of_person(p_id person.id%type)
@@ -130,22 +129,7 @@ returns type_table as $$
 	end; $$
 language plpgsql;
 
--- drop function buy_details_of_person;
-
-select * from buy_details_of_person(1);
-select * from buy_details;
-
--- create or replace function buy_details_of_person(p_id person.id%type) 
--- returns table(product_name varchar(20), quantity integer) as $$
--- 	begin
--- 		return query
--- 		select buy_details.product_name, buy_details.quantity
--- 		from buy_details, buy
--- 		where buy_details.order_id = buy.order_id and buy.person_id = p_id;
--- 	end; $$
--- language plpgsql;
-
--- TODO function to compute grand total order cost for a person
+-- function to compute grand total order cost for a person
 create or replace function compute_total_cost(p_id person.id%type) returns numeric as $$
 declare
     total_cost numeric := 0;
@@ -163,7 +147,7 @@ language plpgsql;
 
 		
 
--- TODO id ve sifre icin trigger icin fonksiyon
+-- id ve sifre icin trigger icin fonksiyon
 create or replace function login(p_username person.username%type, p_pass person.password%type)
 returns boolean as $$
 	begin
@@ -175,8 +159,7 @@ returns boolean as $$
 	end; $$
 language plpgsql;
 
--- TODO satin alim yaparken stok kontrolu yapan trigger icin fonksiyon
--- Kontrol et GPT yapti
+-- satin alim yaparken stok kontrolu yapan trigger icin fonksiyon
 create or replace function check_and_update_order_quantity()
 returns trigger as $$
 declare
