@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -151,7 +152,7 @@ class HomepageFrame extends JFrame {
 
             JButton accountInfoButton = new JButton("View Account Information");
             JButton viewPetsButton = new JButton("View My Pets");
-            JButton vetReservationButton = new JButton("Make a Veterinary Reservation");
+            JButton vetReservationButton = new JButton("Make a Veterinary Appointment");
             JButton petStoreButton = new JButton("Go to Pet Store");
             JButton logoutButton = new JButton("Logout");
 
@@ -162,7 +163,7 @@ class HomepageFrame extends JFrame {
             });
             vetReservationButton.addActionListener(e -> {
                 dispose(); // Close the HomepageFrame
-                new ReservationsFrame(user).setVisible(true);
+                new AppointmentFrame(user).setVisible(true);
             });
             petStoreButton.addActionListener(e -> {
                 dispose(); // Close the HomepageFrame
@@ -201,229 +202,227 @@ class HomepageFrame extends JFrame {
     }
 
 
-    class PetStoreFrame extends JFrame {
-        private User user;
-        private Cart cart;
-
-        public PetStoreFrame(User user) {
-            this.user = user;
-            this.cart = new Cart();
-
-            setTitle("Pet Store");
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            setSize(600, 500);
-            setLocationRelativeTo(null);
-
-            JPanel mainPanel = new JPanel();
-            mainPanel.setLayout(new BorderLayout());
-
-            // Product list
-            JPanel productPanel = new JPanel();
-            productPanel.setLayout(new GridLayout(0, 2, 10, 10));
-
-            // Add products dynamically
-            String[] products = {
-                "Dog Food", "Cat Food", "Bird Cages", "Fish Tanks",
-                "Dog Toys", "Cat Litter", "Bird Seeds", "Aquarium Decorations"
-            };
-            double[] prices = {20.0, 15.0, 40.0, 50.0, 10.0, 8.0, 5.0, 12.0};
-
-            for (int i = 0; i < products.length; i++) {
-                String productName = products[i];
-                double price = prices[i];
-
-                JPanel productItem = new JPanel(new FlowLayout());
-                JLabel productLabel = new JLabel(productName + " ($" + price + ")");
-                JTextField quantityField = new JTextField(5);
-                JButton addButton = new JButton("Add to Cart");
-
-                addButton.addActionListener(e -> {
-                    try {
-                        int quantity = Integer.parseInt(quantityField.getText());
-                        if (quantity > 0) {
-                            cart.addProduct(productName, price, quantity);
-                            JOptionPane.showMessageDialog(this, quantity + " " + productName + " added to cart.");
-                        } else {
-                            JOptionPane.showMessageDialog(this, "Please enter a valid quantity.");
-                        }
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(this, "Please enter a valid number.");
-                    }
-                });
-
-                productItem.add(productLabel);
-                productItem.add(quantityField);
-                productItem.add(addButton);
-                productPanel.add(productItem);
-            }
-
-            JScrollPane productScrollPane = new JScrollPane(productPanel);
-            mainPanel.add(productScrollPane, BorderLayout.CENTER);
-
-            // Bottom buttons
-            JPanel buttonPanel = new JPanel();
-            JButton viewCartButton = new JButton("View Cart");
-            JButton goBackButton = new JButton("Go Back");
-
-            viewCartButton.addActionListener(e -> { 
-            	dispose();
-            	new CartFrame(user, cart).setVisible(true);
-            });
-            goBackButton.addActionListener(e -> goBack());
-
-            buttonPanel.add(viewCartButton);
-            buttonPanel.add(goBackButton);
-            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-            add(mainPanel);
-
-        }
-
-        private void goBack() {
-            new HomepageFrame(user).setVisible(true);;
-            dispose();
-        }
-    }
-
-    class Cart {
-        private Map<String, CartItem> cartItems;
-
-        public Cart() {
-            cartItems = new HashMap<>();
-        }
-
-        public void addProduct(String productName, double price, int quantity) {
-            cartItems.putIfAbsent(productName, new CartItem(productName, price, 0));
-            cartItems.get(productName).addQuantity(quantity);
-        }
-
-        public void removeProduct(String productName) {
-            cartItems.remove(productName);
-        }
-
-        public void clearCart() {
-            cartItems.clear();
-        }
-
-        public double getTotalPrice() {
-            return cartItems.values().stream().mapToDouble(CartItem::getTotalPrice).sum();
-        }
-
-        public Map<String, CartItem> getCartItems() {
-            return cartItems;
-        }
-    }
-
-    class CartItem {
-        private String productName;
-        private double price;
-        private int quantity;
-
-        public CartItem(String productName, double price, int quantity) {
-            this.productName = productName;
-            this.price = price;
-            this.quantity = quantity;
-        }
-
-        public void addQuantity(int quantity) {
-            this.quantity += quantity;
-        }
-
-        public double getTotalPrice() {
-            return price * quantity;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-    }
-
-    class CartFrame extends JFrame {
-        private User user;
-        private Cart cart;
-
-        public CartFrame(User user, Cart cart) {
-            this.user = user;
-            this.cart = cart;
-
-            setTitle("Shopping Cart");
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            setSize(600, 400);
-            setLocationRelativeTo(null);
-
-            JPanel mainPanel = new JPanel(new BorderLayout());
-            JTextArea cartDetails = new JTextArea();
-            cartDetails.setEditable(false);
-
-            // Display cart details
-            StringBuilder cartInfo = new StringBuilder("Your Cart:\n");
-            for (CartItem item : cart.getCartItems().values()) {
-                cartInfo.append(item.getProductName())
-                        .append(" - Quantity: ")
-                        .append(item.getQuantity())
-                        .append(" - Total: $")
-                        .append(item.getTotalPrice())
-                        .append("\n");
-            }
-
-            cartInfo.append("\nTotal Price: $").append(cart.getTotalPrice());
-            cartDetails.setText(cartInfo.toString());
-            mainPanel.add(new JScrollPane(cartDetails), BorderLayout.CENTER);
-
-            // Bottom buttons
-            JPanel buttonPanel = new JPanel();
-            JButton removeButton = new JButton("Remove Product");
-            JButton purchaseButton = new JButton("Purchase");
-            JButton goBackButton = new JButton("Go Back");
-
-            removeButton.addActionListener(e -> {
-                String productName = JOptionPane.showInputDialog(this, "Enter product name to remove:");
-                if (cart.getCartItems().containsKey(productName)) {
-                    cart.removeProduct(productName);
-                    JOptionPane.showMessageDialog(this, productName + " removed from cart.");
-                    dispose();
-                    new CartFrame(user, cart).setVisible(true);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Product not found in cart.");
-                }
-            });
-
-            purchaseButton.addActionListener(e -> {
-                if (cart.getCartItems().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Your cart is empty!");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Purchase successful! Total: $" + cart.getTotalPrice());
-                    cart.clearCart();
-                    dispose();
-                    new CartFrame(user, cart).setVisible(true);
-                }
-            });
-
-            goBackButton.addActionListener(e -> {
-                new PetStoreFrame(user).setVisible(true);
-                dispose();
-            });
-
-            buttonPanel.add(removeButton);
-            buttonPanel.add(purchaseButton);
-            buttonPanel.add(goBackButton);
-            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-            add(mainPanel);
-
-        }
-    }
-
-
 }
+
+
+// CartItem class to store item details and quantity
+class CartItem {
+    private String itemName;
+    private int quantity;
+    private double price;
+
+    public CartItem(String itemName, int quantity, double price) {
+        this.itemName = itemName;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public double getTotalPrice() {
+        return quantity * price;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+}
+
+// PetStoreFrame for managing the pet store
+class PetStoreFrame extends JFrame {
+    private User user;
+    private Map<String, Double> items;
+    private ArrayList<CartItem> cart;
+    private Connection connection;
+    private JFrame homepageFrame;
+
+    public PetStoreFrame(User user) {
+        this.user = user;
+        this.items = new HashMap<>();
+        this.cart = new ArrayList<>();
+
+        setTitle("Pet Store");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 400);
+        setLocationRelativeTo(null);
+
+        // Load items from database
+        try {
+            connection = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD);
+            loadItemsFromDatabase();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to connect to database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        items.forEach((item, price) -> listModel.addElement(item + " - $" + price));
+
+        JList<String> itemList = new JList<>(listModel);
+        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JTextField quantityField = new JTextField();
+        JButton addToCartButton = new JButton("Add to Cart");
+        addToCartButton.addActionListener(e -> addToCart(itemList, quantityField));
+
+        JButton viewCartButton = new JButton("View Cart");
+        viewCartButton.addActionListener(e -> {
+            dispose();
+            new CartFrame(user, cart, this).setVisible(true);
+        });
+
+        JButton backButton = new JButton("Go Back");
+        backButton.addActionListener(e -> {
+        	     new HomepageFrame(user).setVisible(true);;
+        	     dispose();
+        	 }
+        );
+
+        JPanel controlPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        controlPanel.add(new JLabel("Select Item:"));
+        controlPanel.add(new JScrollPane(itemList));
+        controlPanel.add(new JLabel("Quantity:"));
+        controlPanel.add(quantityField);
+        controlPanel.add(addToCartButton);
+        controlPanel.add(viewCartButton);
+        controlPanel.add(backButton);
+
+        mainPanel.add(controlPanel, BorderLayout.CENTER);
+        add(mainPanel);
+    }
+
+    private void loadItemsFromDatabase() {
+        String query = "SELECT name, price FROM product";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String name = rs.getString("name");
+                double price = rs.getDouble("price");
+                items.put(name, price);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addToCart(JList<String> itemList, JTextField quantityField) {
+        String selectedValue = itemList.getSelectedValue();
+        if (selectedValue == null) {
+            JOptionPane.showMessageDialog(this, "Please select an item.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String itemName = selectedValue.split(" - ")[0];
+        double price = items.get(itemName);
+
+        try {
+            int quantity = Integer.parseInt(quantityField.getText());
+            if (quantity <= 0) {
+                throw new NumberFormatException();
+            }
+
+            boolean itemExists = false;
+            for (CartItem item : cart) {
+                if (item.getItemName().equals(itemName)) {
+                    item.setQuantity(item.getQuantity() + quantity);
+                    itemExists = true;
+                    break;
+                }
+            }
+
+            if (!itemExists) {
+                cart.add(new CartItem(itemName, quantity, price));
+            }
+
+            JOptionPane.showMessageDialog(this, "Item added to cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid quantity.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+// CartFrame to view and manage cart items
+class CartFrame extends JFrame {
+    private ArrayList<CartItem> cart;
+    private JFrame petStoreFrame;
+
+    public CartFrame(User user, ArrayList<CartItem> cart, JFrame petStoreFrame) {
+        this.cart = cart;
+        this.petStoreFrame = petStoreFrame;
+
+        setTitle("Cart");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 400);
+        setLocationRelativeTo(null);
+
+        DefaultListModel<String> cartModel = new DefaultListModel<>();
+        JList<String> cartList = new JList<>(cartModel);
+        updateCartModel(cartModel);
+
+        JButton removeButton = new JButton("Remove Selected Item");
+        removeButton.addActionListener(e -> removeSelectedItem(cartList, cartModel));
+
+        JButton buyButton = new JButton("Buy Items");
+        buyButton.addActionListener(e -> buyItems());
+
+        JButton backButton = new JButton("Back to Store");
+        backButton.addActionListener(e -> {
+            dispose();
+            petStoreFrame.setVisible(true);
+        });
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+        buttonPanel.add(removeButton);
+        buttonPanel.add(buyButton);
+        buttonPanel.add(backButton);
+
+        add(new JScrollPane(cartList), BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private void updateCartModel(DefaultListModel<String> cartModel) {
+        cartModel.clear();
+        for (CartItem item : cart) {
+            cartModel.addElement(item.getItemName() + " - Quantity: " + item.getQuantity() + " - Total: $" + item.getTotalPrice());
+        }
+    }
+
+    private void removeSelectedItem(JList<String> cartList, DefaultListModel<String> cartModel) {
+        int selectedIndex = cartList.getSelectedIndex();
+        if (selectedIndex != -1) {
+            cart.remove(selectedIndex);
+            updateCartModel(cartModel);
+            JOptionPane.showMessageDialog(this, "Item removed from cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select an item to remove.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void buyItems() {
+        if (cart.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Your cart is empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        cart.clear();
+        JOptionPane.showMessageDialog(this, "Thank you for your purchase!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        dispose();
+        petStoreFrame.setVisible(true);
+    }
+}
+
+
+
 
 //Updated PetsFrame with "Go Back" button and ReservationsFrame
 class PetsFrame extends JFrame {
@@ -615,179 +614,148 @@ class PetsFrame extends JFrame {
 }
 
 //ReservationsFrame Class
-class ReservationsFrame extends JFrame {
- private User user;
-
- public ReservationsFrame(User user) {
-     this.user = user;
-
-     setTitle("Pet Reservations");
-     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-     setSize(500, 400);
-     setLocationRelativeTo(null);
-
-     JPanel buttonPanel = new JPanel();
-     buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
-
-     JButton makeReservationButton = new JButton("Make Reservation");
-     JButton viewReservationsButton = new JButton("View Reservations");
-     JButton goBackButton = new JButton("Go Back");
-
-     makeReservationButton.addActionListener(e -> openMakeReservationScreen());
-     viewReservationsButton.addActionListener(e -> viewReservations());
-     goBackButton.addActionListener(e -> goBack());
-
-     buttonPanel.add(makeReservationButton);
-     buttonPanel.add(viewReservationsButton);
-     buttonPanel.add(goBackButton);
-
-     add(buttonPanel, BorderLayout.CENTER);
 
 
- }
+// AppointmentFrame class to handle pet appointments
+class AppointmentFrame extends JFrame {
+    private User user;
+    private JComboBox<String> petComboBox;
+    private JComboBox<String> appointmentTypeComboBox;
+    private JSpinner dateSpinner;
+    private DefaultListModel<String> appointmentListModel;
 
- private void openMakeReservationScreen() {
-     // Open a new screen for making a reservation
-     new MakeReservationFrame(user).setVisible(true);;
-     dispose(); // Close current frame
- }
+    public AppointmentFrame(User user) {
+        this.user = user;
 
- private void viewReservations() {
-     try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-         String query = "SELECT * FROM reservations WHERE owner_id = ?";
-         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-             stmt.setInt(1, user.getId());
-             ResultSet rs = stmt.executeQuery();
+        setTitle("Make an Appointment");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLocationRelativeTo(null);
 
-             StringBuilder reservationsInfo = new StringBuilder("Your Reservations:\n");
-             while (rs.next()) {
-                 reservationsInfo.append("-- Reservation ID: ").append(rs.getInt("id")).append(", ");
-                 reservationsInfo.append("Pet ID: ").append(rs.getInt("pet_id")).append(", ");
-                 reservationsInfo.append("Clinic: ").append(rs.getString("clinic_name")).append(", ");
-                 reservationsInfo.append("Date: ").append(rs.getDate("reservation_date")).append("\n");
-             }
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
 
-             if (reservationsInfo.length() == 19) {
-                 reservationsInfo.append("You have no reservations.");
-             }
+        // Fetch pets and appointment types from the database
+        petComboBox = new JComboBox<>(fetchPetsFromDatabase());
+        appointmentTypeComboBox = new JComboBox<>(fetchAppointmentTypesFromDatabase());
 
-             JOptionPane.showMessageDialog(this, reservationsInfo.toString(), "My Reservations",
-                     JOptionPane.INFORMATION_MESSAGE);
-         }
-     } catch (SQLException ex) {
-         ex.printStackTrace();
-         JOptionPane.showMessageDialog(this, "Error fetching reservations.", "Error", JOptionPane.ERROR_MESSAGE);
-     }
- }
+        JLabel petLabel = new JLabel("Select Pet:");
+        JLabel appointmentTypeLabel = new JLabel("Select Appointment Type:");
+        JLabel dateLabel = new JLabel("Select Date:");
 
- private void goBack() {
-     // Go back to homepage
-     new HomepageFrame(user).setVisible(true);;
-     dispose();
- }
-}
+        dateSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
+        dateSpinner.setEditor(dateEditor);
 
-//MakeReservationFrame Class
-class MakeReservationFrame extends JFrame {
- private User user;
+        JButton makeAppointmentButton = new JButton("Make Appointment");
+        makeAppointmentButton.addActionListener(e -> makeAppointment());
 
- public MakeReservationFrame(User user) {
-     this.user = user;
+        JButton viewAppointmentsButton = new JButton("View Appointments");
+        viewAppointmentsButton.addActionListener(e -> viewAppointments());
 
-     setTitle("Make Reservation");
-     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-     setSize(500, 400);
-     setLocationRelativeTo(null);
+        JButton backButton = new JButton("Back to Homepage");
+        backButton.addActionListener(e -> {
+            dispose();
+            new HomepageFrame(user).setVisible(true);
+        });
 
-     JPanel formPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        formPanel.add(petLabel);
+        formPanel.add(petComboBox);
+        formPanel.add(appointmentTypeLabel);
+        formPanel.add(appointmentTypeComboBox);
+        formPanel.add(dateLabel);
+        formPanel.add(dateSpinner);
+        formPanel.add(makeAppointmentButton);
+        formPanel.add(viewAppointmentsButton);
 
-     JLabel petLabel = new JLabel("Select Pet:");
-     JComboBox<String> petComboBox = new JComboBox<>();
-     populatePets(petComboBox);
+        add(formPanel, BorderLayout.CENTER);
+        add(backButton, BorderLayout.SOUTH);
+    }
 
-     JLabel clinicLabel = new JLabel("Select Clinic:");
-     JComboBox<String> clinicComboBox = new JComboBox<>();
-     populateClinics(clinicComboBox);
+    private String[] fetchPetsFromDatabase() {
+        ArrayList<String> pets = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+            String query = "SELECT id FROM pet WHERE owner_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, user.getId());
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    pets.add(rs.getString("id"));
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to fetch pets from database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return pets.toArray(new String[0]);
+    }
 
-     JLabel dateLabel = new JLabel("Select Date (YYYY-MM-DD):");
-     JTextField dateField = new JTextField();
+    private String[] fetchAppointmentTypesFromDatabase() {
+        ArrayList<String> appointmentTypes = new ArrayList<>();
+        appointmentTypes.add("Vaccination");
+        appointmentTypes.add("Check-up");
 
-     JButton makeReservationButton = new JButton("Make Reservation");
-     JButton goBackButton = new JButton("Go Back");
+        return appointmentTypes.toArray(new String[0]);
+    }
 
-     formPanel.add(petLabel);
-     formPanel.add(petComboBox);
-     formPanel.add(clinicLabel);
-     formPanel.add(clinicComboBox);
-     formPanel.add(dateLabel);
-     formPanel.add(dateField);
+    private void makeAppointment() {
+        String selectedPet = (String) petComboBox.getSelectedItem();
+        String selectedAppointmentType = (String) appointmentTypeComboBox.getSelectedItem();
+        java.util.Date selectedDate = (java.util.Date) dateSpinner.getValue();
+        java.sql.Date sqlDate = new java.sql.Date(selectedDate.getTime());
 
-     JPanel buttonPanel = new JPanel();
-     buttonPanel.add(makeReservationButton);
-     buttonPanel.add(goBackButton);
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+            // Query to insert the appointment with sequence-generated appointment_id
+            String query = "INSERT INTO appointment (appointment_id, owner_id, pet_id, type, op_date) VALUES (nextval('appointment_seq'), ?, ?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, user.getId()); // owner_id
+                stmt.setInt(2, Integer.parseInt(selectedPet)); // pet_id
 
-     add(formPanel, BorderLayout.CENTER);
-     add(buttonPanel, BorderLayout.SOUTH);
+                stmt.setString(3, selectedAppointmentType); // type
+                stmt.setDate(4, sqlDate); // op_date
+                stmt.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Appointment made successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to make appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-     makeReservationButton.addActionListener(e -> makeReservation(petComboBox, clinicComboBox, dateField));
-     goBackButton.addActionListener(e -> goBackToReservations());
 
+    private void viewAppointments() {
+        JFrame viewFrame = new JFrame("Your Appointments");
+        viewFrame.setSize(500, 300);
+        viewFrame.setLocationRelativeTo(null);
 
- }
+        appointmentListModel = new DefaultListModel<>();
+        JList<String> appointmentList = new JList<>(appointmentListModel);
+        fetchAppointmentsFromDatabase();
 
- private void populatePets(JComboBox<String> petComboBox) {
-     try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-         String query = "SELECT id, name FROM pet WHERE owner_id = ?";
-         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-             stmt.setInt(1, user.getId());
-             ResultSet rs = stmt.executeQuery();
-             while (rs.next()) {
-                 petComboBox.addItem(rs.getInt("id") + " - " + rs.getString("name"));
-             }
-         }
-     } catch (SQLException ex) {
-         ex.printStackTrace();
-     }
- }
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> viewFrame.dispose());
 
- private void populateClinics(JComboBox<String> clinicComboBox) {
-     // Populate clinics (static example, can be updated to fetch dynamically from the database)
-     clinicComboBox.addItem("Happy Pets Clinic");
-     clinicComboBox.addItem("Careful Paws Clinic");
-     clinicComboBox.addItem("Healthy Tails Clinic");
- }
+        viewFrame.add(new JScrollPane(appointmentList), BorderLayout.CENTER);
+        viewFrame.add(closeButton, BorderLayout.SOUTH);
+        viewFrame.setVisible(true);
+    }
 
- private void makeReservation(JComboBox<String> petComboBox, JComboBox<String> clinicComboBox, JTextField dateField) {
-     String petInfo = (String) petComboBox.getSelectedItem();
-     String clinicName = (String) clinicComboBox.getSelectedItem();
-     String reservationDate = dateField.getText();
-
-     if (petInfo == null || clinicName == null || reservationDate.isEmpty()) {
-         JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
-         return;
-     }
-
-     int petId = Integer.parseInt(petInfo.split(" - ")[0]);
-
-     try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-         String query = "INSERT INTO reservations (owner_id, pet_id, clinic_name, reservation_date) VALUES (?, ?, ?, ?)";
-         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-             stmt.setInt(1, user.getId());
-             stmt.setInt(2, petId);
-             stmt.setString(3, clinicName);
-             stmt.setString(4, reservationDate);
-             stmt.executeUpdate();
-             JOptionPane.showMessageDialog(this, "Reservation made successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-             goBackToReservations();
-         }
-     } catch (SQLException ex) {
-         ex.printStackTrace();
-         JOptionPane.showMessageDialog(this, "Error making reservation.", "Error", JOptionPane.ERROR_MESSAGE);
-     }
- }
-
- private void goBackToReservations() {
-     new ReservationsFrame(user).setVisible(true);;
-     dispose();
- }
+    private void fetchAppointmentsFromDatabase() {
+        appointmentListModel.clear();
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+            String query = "SELECT pet_id, type, op_date FROM appointment WHERE owner_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, user.getId());
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                	int petId = rs.getInt("pet_id");
+                    String appointmentType = rs.getString("type");
+                    String appointmentDate = rs.getDate("op_date").toString();
+                    appointmentListModel.addElement(" --Id: " + petId +  " --Type: " + appointmentType + " --Date: " + appointmentDate);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to fetch appointments from database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
