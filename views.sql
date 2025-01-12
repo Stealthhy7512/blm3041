@@ -33,3 +33,9 @@ create or replace  view species_owner_count as
     select pet.species, count(distinct pet.owner_id) as owner_count
     from  pet
     group by  pet.species;
+
+-- stok bilgilerini gösteren view (NEW)
+create or replace view display_stocks as
+select  storage.product_id, product.name, product.price, storage.quantity
+from storage
+join product on storage.product_id = product.id;
