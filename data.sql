@@ -1,19 +1,19 @@
-insert into person values
-(nextval('person_seq'), 'John', 'Doe', 'password123', '123 Elm St'),
-(nextval('person_seq'), 'Jane', 'Smith', 'securePass456', '456 Oak Ave'),
-(nextval('person_seq'), 'Alice', 'Johnson', 'alice789', '789 Pine Blvd'),
-(nextval('person_seq'), 'Bob', 'Brown', 'bob12345', '101 Maple St'),
-(nextval('person_seq'), 'Charlie', 'Davis', 'charlie321', '202 Birch Rd'),
-(nextval('person_seq'), 'Emily', 'Clark', 'emilyPass', '303 Cedar Ln'),
-(nextval('person_seq'), 'Michael', 'Martinez', 'mike987', '404 Spruce St'),
-(nextval('person_seq'), 'Sarah', 'Lopez', 'sarahSecret', '505 Walnut Dr'),
-(nextval('person_seq'), 'David', 'Harris', 'dave2468', '606 Willow Ct'),
-(nextval('person_seq'), 'Sophia', 'Gonzalez', 'sophia111', '707 Palm Ave'),
-(nextval('person_seq'), 'Ethan', 'Walker', 'ethanPass', '808 Cherry St'),
-(nextval('person_seq'), 'Olivia', 'Young', 'olivia123', '909 Oak St'),
-(nextval('person_seq'), 'Noah', 'Hall', 'noah999', '1010 Elm Dr'),
-(nextval('person_seq'), 'Mia', 'Allen', 'miaSecret', '1111 Birch Ln'),
-(nextval('person_seq'), 'Liam', 'Wright', 'liam000', '1212 Maple Rd');
+insert into person values 
+(nextval('person_seq'), 'John', 'Doe', 'password123', '123 Elm St', 'johndoe123'),
+(nextval('person_seq'), 'Jane', 'Smith', 'securePass456', '456 Oak Ave', 'janesmith456'),
+(nextval('person_seq'), 'Alice', 'Johnson', 'alice789', '789 Pine Blvd', 'alicejohnson789'),
+(nextval('person_seq'), 'Bob', 'Brown', 'bob12345', '101 Maple St', 'bobbrown12345'),
+(nextval('person_seq'), 'Charlie', 'Davis', 'charlie321', '202 Birch Rd', 'charliedavis321'),
+(nextval('person_seq'), 'Emily', 'Clark', 'emilyPass', '303 Cedar Ln', 'emilyclarkpass'),
+(nextval('person_seq'), 'Michael', 'Martinez', 'mike987', '404 Spruce St', 'michaelmartinez987'),
+(nextval('person_seq'), 'Sarah', 'Lopez', 'sarahSecret', '505 Walnut Dr', 'sarahlopezsecret'),
+(nextval('person_seq'), 'David', 'Harris', 'dave2468', '606 Willow Ct', 'davidharris2468'),
+(nextval('person_seq'), 'Sophia', 'Gonzalez', 'sophia111', '707 Palm Ave', 'sophiagonzalez111'),
+(nextval('person_seq'), 'Ethan', 'Walker', 'ethanPass', '808 Cherry St', 'ethanwalkerpass'),
+(nextval('person_seq'), 'Olivia', 'Young', 'olivia123', '909 Oak St', 'oliviayoung123'),
+(nextval('person_seq'), 'Noah', 'Hall', 'noah999', '1010 Elm Dr', 'noahhall999'),
+(nextval('person_seq'), 'Mia', 'Allen', 'miaSecret', '1111 Birch Ln', 'miaallensecret'),
+(nextval('person_seq'), 'Liam', 'Wright', 'liam000', '1212 Maple Rd', 'liamwright000');
 
 -- TODO fix pet data
 INSERT INTO pet VALUES 

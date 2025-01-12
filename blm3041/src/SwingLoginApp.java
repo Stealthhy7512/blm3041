@@ -1,4 +1,3 @@
-package deneme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,9 +45,9 @@ class User {
 
 public class SwingLoginApp {
     // Database connection details
-    static final String DB_URL = "jdbc:postgresql://localhost/vetcare";
+    static final String DB_URL = "jdbc:postgresql://localhost/blm3041";
     static final String DB_USER = "postgres";
-    static final String DB_PASSWORD = "1234";
+    static final String DB_PASSWORD = "kali";
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginFrame());

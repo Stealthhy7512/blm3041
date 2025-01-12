@@ -1,8 +1,8 @@
 -- add owner_id as fkey
 create table pet (
 	id integer primary key,
-	name varchar(20) not null,
 	owner_id integer references person(id),
+	name varchar(20) not null,
 	species varchar(20) not null,
 	breed varchar(20),
 	age integer check (age between 0 and 30),
@@ -16,24 +16,9 @@ create table person (
 	fname varchar(20) not null,
 	lname varchar(20) not null,
 	password varchar(20) not null,
-	address varchar(100)
-);
-
--- alter table person add password varchar(20);
--- alter table person add address varchar(100);
-
--- select * from person;
-
--- -- primary key only pet_id
--- -- drop pets relation
--- create table pets (
--- 	owner_id integer,
--- 	pet_id integer,
-
--- 	primary key (pet_id),
--- 	foreign key (owner_id) references person(id),
--- 	foreign key (pet_id) references pet(id)
--- );
+	address varchar(100),
+	username varchar(25) not null unique,
+); 
 
 -- owner_id might be redundant
 create table appointment (
@@ -41,11 +26,11 @@ create table appointment (
 	owner_id integer not null,
 	pet_id integer not null,
 	date varchar(10) not null,
+	type varchar(25) not null,
 
 	foreign key (owner_id) references person(id),
 	foreign key (pet_id) references pet(id)	
 );
-drop table appointment;
 
 create table product (
 	id integer primary key,
