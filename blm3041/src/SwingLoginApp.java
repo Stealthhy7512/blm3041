@@ -262,24 +262,25 @@ class PetStoreFrame extends JFrame {
  }
 
  private void loadProducts() {
-     try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-         String query = "SELECT p.id, p.name, p.price, s.quantity FROM product p JOIN storage s ON p.id = s.product_id";
-         try (PreparedStatement stmt = conn.prepareStatement(query);
-              ResultSet rs = stmt.executeQuery()) {
+	    try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+	        String query = "SELECT product_id, name, price, quantity FROM display_stocks";
+	        try (PreparedStatement stmt = conn.prepareStatement(query);
+	             ResultSet rs = stmt.executeQuery()) {
 
-             while (rs.next()) {
-                 int id = rs.getInt("id");
-                 String name = rs.getString("name");
-                 double price = rs.getDouble("price");
-                 int stock = rs.getInt("quantity");
-                 productListModel.addElement(String.format("ID: %d | %s | $%.2f | Stock: %d", id, name, price, stock));
-             }
-         }
-     } catch (SQLException ex) {
-         ex.printStackTrace();
-         JOptionPane.showMessageDialog(this, "Failed to load products.", "Error", JOptionPane.ERROR_MESSAGE);
-     }
- }
+	            while (rs.next()) {
+	                int productId = rs.getInt("product_id");
+	                String name = rs.getString("name");
+	                double price = rs.getDouble("price");
+	                int stock = rs.getInt("quantity");
+	                productListModel.addElement(String.format("ID: %d | %s | $%.2f | Stock: %d", productId, name, price, stock));
+	            }
+	        }
+	    } catch (SQLException ex) {
+	        ex.printStackTrace();
+	        JOptionPane.showMessageDialog(this, "Failed to load products.", "Error", JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+
 
  private void addToCart() {
      int selectedIndex = productList.getSelectedIndex();
@@ -608,91 +609,34 @@ class PetsFrame extends JFrame {
  }
 
  private void viewPetDetails() {
-	    // Create a new JFrame for displaying pet vaccination and check-up details
-	    JFrame petDetailsFrame = new JFrame("Pet Details");
-	    petDetailsFrame.setSize(500, 400);
-	    petDetailsFrame.setLocationRelativeTo(this);
-	    petDetailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-	    JPanel panel = new JPanel();
-	    panel.setLayout(new BorderLayout());
-
-	    JComboBox<String> petComboBox = new JComboBox<>();
-	    JButton showDetailsButton = new JButton("Show Details");
-
-	    // Populate the JComboBox with the user's pets
 	    try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-	        String query = "SELECT id, name FROM pet WHERE owner_id = ?";
+	        // Query to select pets that have appointments using the view
+	        String query = "SELECT distinct name FROM display_pets_with_appointments ";
 	        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-	            stmt.setInt(1, user.getId()); // Get only pets belonging to the logged-in user
+	           
+
 	            ResultSet rs = stmt.executeQuery();
+
+	            StringBuilder petDetails = new StringBuilder("Pets with Appointments:\n");
 	            while (rs.next()) {
-	                petComboBox.addItem(rs.getInt("id") + " - " + rs.getString("name"));
+	                petDetails.append("Pet Name: ").append(rs.getString("name")).append("\n");
 	            }
+
+	            if (petDetails.length() == 26) {  // "Pets with Appointments:\n" length = 26
+	                petDetails.append("You have no pets with appointments.");
+	            }
+
+	            JOptionPane.showMessageDialog(this, petDetails.toString(), "Pet Details", JOptionPane.INFORMATION_MESSAGE);
 	        }
 	    } catch (SQLException ex) {
 	        ex.printStackTrace();
-	        JOptionPane.showMessageDialog(this, "Error fetching pets.", "Error", JOptionPane.ERROR_MESSAGE);
+	        JOptionPane.showMessageDialog(this, "Error fetching pet details.", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
-
-	    // If no pets are found, show a message and close the frame
-	    if (petComboBox.getItemCount() == 0) {
-	        JOptionPane.showMessageDialog(this, "No pets found for this user.", "No Pets", JOptionPane.INFORMATION_MESSAGE);
-	        return;
-	    }
-
-	    panel.add(new JLabel("Select Pet:"), BorderLayout.NORTH);
-	    panel.add(petComboBox, BorderLayout.CENTER);
-	    panel.add(showDetailsButton, BorderLayout.SOUTH);
-
-	    petDetailsFrame.add(panel);
-	    petDetailsFrame.setVisible(true);
+}
 
 
-	    // Action listener for the "Show Details" button
-	    showDetailsButton.addActionListener(e -> {
-	        String selectedPet = (String) petComboBox.getSelectedItem();
-	        if (selectedPet != null) {
-	            int petId = Integer.parseInt(selectedPet.split(" - ")[0]);
 
-	            // Fetch vaccination and check-up details
-	            JFrame detailsFrame = new JFrame("Vaccination and Check-Up Details");
-	            detailsFrame.setSize(500, 400);
-	            detailsFrame.setLocationRelativeTo(petDetailsFrame);
-	            detailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-	            JTextArea detailsArea = new JTextArea();
-	            detailsArea.setEditable(false);
-
-	            try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
-	                String query = "SELECT vaccination_name, date FROM vaccinations WHERE pet_id = ?";
-	                try (PreparedStatement stmt = conn.prepareStatement(query)) {
-	                    stmt.setInt(1, petId);
-	                    ResultSet rs = stmt.executeQuery();
-
-	                    StringBuilder details = new StringBuilder("Vaccination and Check-Up Details:\n");
-	                    while (rs.next()) {
-	                        details.append("Vaccination: ").append(rs.getString("vaccination_name")).append(", ");
-	                        details.append("Date: ").append(rs.getDate("date")).append("\n");
-	                    }
-
-	                    if (details.length() == 33) { // Length of "Vaccination and Check-Up Details:\n"
-	                        details.append("No records found.");
-	                    }
-
-	                    detailsArea.setText(details.toString());
-	                }
-	            } catch (SQLException ex) {
-	                ex.printStackTrace();
-	                JOptionPane.showMessageDialog(petDetailsFrame, "Error fetching pet details.", "Error", JOptionPane.ERROR_MESSAGE);
-	                return;
-	            }
-
-	            detailsFrame.add(new JScrollPane(detailsArea));
-	            detailsFrame.setVisible(true);
-	        }
-	    });
-	}
+ 
 
 
  private void goBack() {
