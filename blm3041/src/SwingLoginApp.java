@@ -1,3 +1,4 @@
+package deneme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,9 +47,9 @@ class User {
 
 public class SwingLoginApp {
     // Database connection details
-    static final String DB_URL = "jdbc:postgresql://localhost/blm3041";
+    static final String DB_URL = "jdbc:postgresql://localhost/vetcare";
     static final String DB_USER = "postgres";
-    static final String DB_PASSWORD = "kali";
+    static final String DB_PASSWORD = "1234";
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginFrame());
@@ -205,158 +206,119 @@ class HomepageFrame extends JFrame {
 }
 
 
-// CartItem class to store item details and quantity
-class CartItem {
-    private String itemName;
-    private int quantity;
-    private double price;
-
-    public CartItem(String itemName, int quantity, double price) {
-        this.itemName = itemName;
-        this.quantity = quantity;
-        this.price = price;
-    }
-
-    public String getItemName() {
-        return itemName;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public double getTotalPrice() {
-        return quantity * price;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-}
-
-// PetStoreFrame for managing the pet store
+//PetStoreFrame class with JList for product display
 class PetStoreFrame extends JFrame {
-    private User user;
-    private Map<String, Double> items;
-    private ArrayList<CartItem> cart;
-    private Connection connection;
-    private JFrame homepageFrame;
+ private User user;
+ private JList<String> productList;
+ private DefaultListModel<String> productListModel;
+ private JTextField quantityField;
+ private ArrayList<CartItem> cart;
 
-    public PetStoreFrame(User user) {
-        this.user = user;
-        this.items = new HashMap<>();
-        this.cart = new ArrayList<>();
+ public PetStoreFrame(User user) {
+     this.user = user;
+     this.cart = new ArrayList<>();
+     setTitle("Pet Store");
+     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+     setSize(600, 400);
+     setLocationRelativeTo(null);
 
-        setTitle("Pet Store");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
-        setLocationRelativeTo(null);
+     JPanel mainPanel = new JPanel(new BorderLayout());
+     JPanel controlPanel = new JPanel(new FlowLayout());
 
-        // Load items from database
-        try {
-            connection = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD);
-            loadItemsFromDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to connect to database.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+     JLabel quantityLabel = new JLabel("Quantity:");
+     quantityField = new JTextField(5);
+     JButton addToCartButton = new JButton("Add to Cart");
+     JButton viewCartButton = new JButton("View Cart");
+     JButton backButton = new JButton("Back");
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        items.forEach((item, price) -> listModel.addElement(item + " - $" + price));
+     addToCartButton.addActionListener(e -> addToCart());
+     viewCartButton.addActionListener(e -> {
+         dispose();
+         new CartFrame(user, cart, this).setVisible(true);
+     });
+     backButton.addActionListener(e -> {
+         dispose();
+         new HomepageFrame(user).setVisible(true);
+     });
 
-        JList<String> itemList = new JList<>(listModel);
-        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+     controlPanel.add(quantityLabel);
+     controlPanel.add(quantityField);
+     controlPanel.add(addToCartButton);
+     controlPanel.add(viewCartButton);
+     controlPanel.add(backButton);
 
-        JTextField quantityField = new JTextField();
-        JButton addToCartButton = new JButton("Add to Cart");
-        addToCartButton.addActionListener(e -> addToCart(itemList, quantityField));
+     productListModel = new DefaultListModel<>();
+     productList = new JList<>(productListModel);
+     productList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+     JScrollPane scrollPane = new JScrollPane(productList);
 
-        JButton viewCartButton = new JButton("View Cart");
-        viewCartButton.addActionListener(e -> {
-            dispose();
-            new CartFrame(user, cart, this).setVisible(true);
-        });
+     loadProducts();
 
-        JButton backButton = new JButton("Go Back");
-        backButton.addActionListener(e -> {
-        	     new HomepageFrame(user).setVisible(true);;
-        	     dispose();
-        	 }
-        );
+     mainPanel.add(scrollPane, BorderLayout.CENTER);
+     mainPanel.add(controlPanel, BorderLayout.SOUTH);
 
-        JPanel controlPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-        controlPanel.add(new JLabel("Select Item:"));
-        controlPanel.add(new JScrollPane(itemList));
-        controlPanel.add(new JLabel("Quantity:"));
-        controlPanel.add(quantityField);
-        controlPanel.add(addToCartButton);
-        controlPanel.add(viewCartButton);
-        controlPanel.add(backButton);
+     add(mainPanel);
+     setVisible(true);
+ }
 
-        mainPanel.add(controlPanel, BorderLayout.CENTER);
-        add(mainPanel);
-    }
+ private void loadProducts() {
+     try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+         String query = "SELECT p.id, p.name, p.price, s.quantity FROM product p JOIN storage s ON p.id = s.product_id";
+         try (PreparedStatement stmt = conn.prepareStatement(query);
+              ResultSet rs = stmt.executeQuery()) {
 
-    private void loadItemsFromDatabase() {
-        String query = "SELECT name, price FROM product";
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                String name = rs.getString("name");
-                double price = rs.getDouble("price");
-                items.put(name, price);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+             while (rs.next()) {
+                 int id = rs.getInt("id");
+                 String name = rs.getString("name");
+                 double price = rs.getDouble("price");
+                 int stock = rs.getInt("quantity");
+                 productListModel.addElement(String.format("ID: %d | %s | $%.2f | Stock: %d", id, name, price, stock));
+             }
+         }
+     } catch (SQLException ex) {
+         ex.printStackTrace();
+         JOptionPane.showMessageDialog(this, "Failed to load products.", "Error", JOptionPane.ERROR_MESSAGE);
+     }
+ }
 
-    private void addToCart(JList<String> itemList, JTextField quantityField) {
-        String selectedValue = itemList.getSelectedValue();
-        if (selectedValue == null) {
-            JOptionPane.showMessageDialog(this, "Please select an item.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+ private void addToCart() {
+     int selectedIndex = productList.getSelectedIndex();
+     if (selectedIndex == -1) {
+         JOptionPane.showMessageDialog(this, "Please select a product.", "Error", JOptionPane.ERROR_MESSAGE);
+         return;
+     }
 
-        String itemName = selectedValue.split(" - ")[0];
-        double price = items.get(itemName);
+     try {
+         String selectedProduct = productListModel.getElementAt(selectedIndex);
+         String[] parts = selectedProduct.split("\\|");
+         int productId = Integer.parseInt(parts[0].split(":")[1].trim());
+         String name = parts[1].trim();
+         double price = Double.parseDouble(parts[2].split("\\$")[1].trim());
+         int stock = Integer.parseInt(parts[3].split(":")[1].trim());
+         int quantity = Integer.parseInt(quantityField.getText());
 
-        try {
-            int quantity = Integer.parseInt(quantityField.getText());
-            if (quantity <= 0) {
-                throw new NumberFormatException();
-            }
+         if (quantity > stock) {
+             JOptionPane.showMessageDialog(this, "Not enough stock available.", "Error", JOptionPane.ERROR_MESSAGE);
+             return;
+         }
 
-            boolean itemExists = false;
-            for (CartItem item : cart) {
-                if (item.getItemName().equals(itemName)) {
-                    item.setQuantity(item.getQuantity() + quantity);
-                    itemExists = true;
-                    break;
-                }
-            }
-
-            if (!itemExists) {
-                cart.add(new CartItem(itemName, quantity, price));
-            }
-
-            JOptionPane.showMessageDialog(this, "Item added to cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid quantity.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+         cart.add(new CartItem(productId, name, price, quantity));
+         JOptionPane.showMessageDialog(this, "Item added to cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
+     } catch (NumberFormatException e) {
+         JOptionPane.showMessageDialog(this, "Invalid quantity.", "Error", JOptionPane.ERROR_MESSAGE);
+     }
+ }
 }
 
-// CartFrame to view and manage cart items
 class CartFrame extends JFrame {
+    private User user;
     private ArrayList<CartItem> cart;
-    private JFrame petStoreFrame;
+    private PetStoreFrame petStoreFrame;
+    private JList<String> cartList;
+    private DefaultListModel<String> cartListModel;
 
-    public CartFrame(User user, ArrayList<CartItem> cart, JFrame petStoreFrame) {
+    public CartFrame(User user, ArrayList<CartItem> cart, PetStoreFrame petStoreFrame) {
+        this.user = user;
         this.cart = cart;
         this.petStoreFrame = petStoreFrame;
 
@@ -365,60 +327,187 @@ class CartFrame extends JFrame {
         setSize(600, 400);
         setLocationRelativeTo(null);
 
-        DefaultListModel<String> cartModel = new DefaultListModel<>();
-        JList<String> cartList = new JList<>(cartModel);
-        updateCartModel(cartModel);
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel controlPanel = new JPanel(new FlowLayout());
 
-        JButton removeButton = new JButton("Remove Selected Item");
-        removeButton.addActionListener(e -> removeSelectedItem(cartList, cartModel));
-
-        JButton buyButton = new JButton("Buy Items");
-        buyButton.addActionListener(e -> buyItems());
-
+        JButton removeButton = new JButton("Remove Selected");
+        JButton checkoutButton = new JButton("Checkout");
         JButton backButton = new JButton("Back to Store");
+        JButton loadOrderDetailsButton = new JButton("Load Order Details");
+
+        removeButton.addActionListener(e -> removeSelectedItem());
+        checkoutButton.addActionListener(e -> checkout());
         backButton.addActionListener(e -> {
             dispose();
             petStoreFrame.setVisible(true);
         });
+        loadOrderDetailsButton.addActionListener(e -> loadOrderDetails(user.getId()));
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 10, 10));
-        buttonPanel.add(removeButton);
-        buttonPanel.add(buyButton);
-        buttonPanel.add(backButton);
+        controlPanel.add(removeButton);
+        controlPanel.add(checkoutButton);
+        controlPanel.add(backButton);
+        controlPanel.add(loadOrderDetailsButton); // Add the new button here
 
-        add(new JScrollPane(cartList), BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        cartListModel = new DefaultListModel<>();
+        cartList = new JList<>(cartListModel);
+        cartList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollPane = new JScrollPane(cartList);
+
+        loadCart();
+
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(controlPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
+        setVisible(true);
     }
 
-    private void updateCartModel(DefaultListModel<String> cartModel) {
-        cartModel.clear();
+    private void loadCart() {
+        cartListModel.clear();
         for (CartItem item : cart) {
-            cartModel.addElement(item.getItemName() + " - Quantity: " + item.getQuantity() + " - Total: $" + item.getTotalPrice());
+            cartListModel.addElement(String.format("ID: %d | %s | $%.2f | Quantity: %d",
+                    item.getProductId(), item.getName(), item.getPrice(), item.getQuantity()));
         }
     }
 
-    private void removeSelectedItem(JList<String> cartList, DefaultListModel<String> cartModel) {
+    private void removeSelectedItem() {
         int selectedIndex = cartList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            cart.remove(selectedIndex);
-            updateCartModel(cartModel);
-            JOptionPane.showMessageDialog(this, "Item removed from cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } else {
+        if (selectedIndex == -1) {
             JOptionPane.showMessageDialog(this, "Please select an item to remove.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private void buyItems() {
-        if (cart.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Your cart is empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        cart.clear();
-        JOptionPane.showMessageDialog(this, "Thank you for your purchase!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        dispose();
-        petStoreFrame.setVisible(true);
+        cart.remove(selectedIndex);
+        loadCart();
+        JOptionPane.showMessageDialog(this, "Item removed from cart.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    private void checkout() {
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD)) {
+            conn.setAutoCommit(false);
+
+            String insertBuyQuery = "INSERT INTO buy (order_id, person_id) VALUES (nextval('buy_seq'), ?) RETURNING order_id";
+            int orderId;
+            try (PreparedStatement buyStmt = conn.prepareStatement(insertBuyQuery)) {
+                buyStmt.setInt(1, user.getId());
+                ResultSet rs = buyStmt.executeQuery();
+                if (rs.next()) {
+                    orderId = rs.getInt("order_id");
+                } else {
+                    throw new SQLException("Failed to generate buy ID.");
+                }
+            }
+
+            String insertBuyDetailsQuery = "INSERT INTO buy_details (order_id, product_id, product_name, quantity) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement detailsStmt = conn.prepareStatement(insertBuyDetailsQuery)) {
+                for (CartItem item : cart) {
+                    detailsStmt.setInt(1, orderId);
+                    detailsStmt.setInt(2, item.getProductId());
+                    detailsStmt.setString(3, item.getName());
+                    detailsStmt.setInt(4, item.getQuantity());
+                    detailsStmt.addBatch();
+                }
+                detailsStmt.executeBatch();
+            }
+
+            conn.commit();
+            cart.clear();
+            loadCart();
+
+            // Fetch total cost using buy_details_of_person function
+            double totalCost = computeTotalCost(orderId);
+            JOptionPane.showMessageDialog(this, "Purchase successful! Total cost: $" + totalCost, "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to complete purchase: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private double computeTotalCost(int orderId) throws SQLException {
+        double totalCost = 0;
+        String query = "SELECT compute_total_cost(?) AS total_cost";
+
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    totalCost = rs.getDouble("total_cost");
+                }
+            }
+        }
+        return totalCost;
+    }
+
+    // Updated loadOrderDetails method to open a new screen (frame)
+    private void loadOrderDetails(int userId) {
+        String query = "SELECT * FROM buy_details_of_person(?)";
+
+        try (Connection conn = DriverManager.getConnection(SwingLoginApp.DB_URL, SwingLoginApp.DB_USER, SwingLoginApp.DB_PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                // Create a new frame to display the order details
+                JFrame orderDetailsFrame = new JFrame("Order Details");
+                orderDetailsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                orderDetailsFrame.setSize(600, 400);
+                orderDetailsFrame.setLocationRelativeTo(this);
+
+                DefaultListModel<String> orderDetailsModel = new DefaultListModel<>();
+                JList<String> orderDetailsList = new JList<>(orderDetailsModel);
+                orderDetailsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                JScrollPane scrollPane = new JScrollPane(orderDetailsList);
+
+                while (rs.next()) {
+                    String productName = rs.getString("product_name");
+                    int quantity = rs.getInt("quantity");
+                    orderDetailsModel.addElement(String.format("Product: %s | Quantity: %d", productName, quantity));
+                }
+
+                orderDetailsFrame.add(scrollPane);
+                orderDetailsFrame.setVisible(true);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to load order details: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+
+
+
+//CartItem Class
+class CartItem {
+ private int productId;
+ private String name;
+ private double price;
+ private int quantity;
+
+ public CartItem(int productId, String name, double price, int quantity) {
+     this.productId = productId;
+     this.name = name;
+     this.price = price;
+     this.quantity = quantity;
+ }
+
+ public int getProductId() {
+     return productId;
+ }
+
+ public String getName() {
+     return name;
+ }
+
+ public double getPrice() {
+     return price;
+ }
+
+ public int getQuantity() {
+     return quantity;
+ }
 }
 
 
